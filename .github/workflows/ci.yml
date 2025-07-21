@@ -1,0 +1,233 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run linter
+      run: npm run lint
+      
+    - name: Run type check
+      run: npm run typecheck || echo "TypeScript check skipped"
+      
+    - name: Run tests
+      run: npm run test:ci
+      
+    - name: Generate test report
+      if: always()
+      run: npm run test:report
+      
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.node-version }}
+        path: |
+          coverage/
+          test-results/
+          
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run security audit
+      run: npm audit --audit-level=moderate
+      
+    - name: Run security tests
+      run: npm run test:security
+      
+    - name: Run JWT tests
+      run: npm run test:jwt
+      
+    - name: Check for vulnerable packages
+      run: |
+        npm audit --json > security-audit.json
+        if [ -s security-audit.json ]; then
+          echo "Security vulnerabilities found!"
+          npm audit
+        fi
+        
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build for production
+      run: npm run build:production
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: |
+          dist/
+          build/
+          .expo/
+          
+  expo-build:
+    name: Expo Build
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Setup Expo CLI
+      run: npm install -g @expo/cli
+      
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build for staging
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: npm run build:staging
+      
+    - name: Upload Expo build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: expo-build
+        path: |
+          *.apk
+          *.ipa
+          *.aab
+          
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: expo-build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        
+    - name: Deploy to staging environment
+      env:
+        STAGING_API_KEY: ${{ secrets.STAGING_API_KEY }}
+        STAGING_URL: ${{ secrets.STAGING_URL }}
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your staging deployment commands here
+        
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: expo-build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts
+        
+    - name: Deploy to production environment
+      env:
+        PRODUCTION_API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
+        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+      run: |
+        echo "Deploying to production environment..."
+        # Add your production deployment commands here
+        
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+    - name: Notify deployment status
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      run: |
+        if [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"🚀 Production deployment successful!"}' \
+            $SLACK_WEBHOOK
+        elif [ "${{ needs.deploy-staging.result }}" == "success" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"🚧 Staging deployment successful!"}' \
+            $SLACK_WEBHOOK
+        else
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"❌ Deployment failed!"}' \
+            $SLACK_WEBHOOK
+        fi

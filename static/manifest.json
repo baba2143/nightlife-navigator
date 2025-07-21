@@ -1,0 +1,72 @@
+{
+  "name": "Nightlife Navigator",
+  "short_name": "Nightlife",
+  "description": "やさしいピンクデザインのナイトライフ案内アプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ea5a7b",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "lifestyle", "social"],
+  "lang": "ja",
+  "dir": "ltr",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "id": "nightlife-navigator",
+  "screenshots": [
+    {
+      "src": "screenshot-mobile.png",
+      "sizes": "360x640",
+      "type": "image/png",
+      "platform": "mobile",
+      "label": "Nightlife Navigator on mobile"
+    },
+    {
+      "src": "screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Nightlife Navigator on desktop"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "店舗検索",
+      "short_name": "検索",
+      "description": "近くの店舗を検索",
+      "url": "/#search",
+      "icons": [
+        {
+          "src": "icon-search.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "お気に入り",
+      "short_name": "お気に入り",
+      "description": "お気に入りの店舗を表示",
+      "url": "/#favorites",
+      "icons": [
+        {
+          "src": "icon-favorites.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+}

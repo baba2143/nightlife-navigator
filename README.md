@@ -1,50 +1,137 @@
-# Welcome to your Expo app 👋
+# 🍷 Nightlife Navigator MVP
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+![Nightlife Navigator](https://img.shields.io/badge/Status-Production%20Ready-green)
+![Version](https://img.shields.io/badge/Version-1.0.0-blue)
+![Platform](https://img.shields.io/badge/Platform-React%20Native%20Web-purple)
 
-## Get started
+Nightlife Navigator is a comprehensive venue discovery app designed for nightlife enthusiasts. Find, review, and favorite bars, clubs, lounges, and other nightlife venues with an intuitive, food-app-inspired interface.
 
-1. Install dependencies
+## ✨ Features
 
-   ```bash
-   npm install
-   ```
+### 🔐 **Authentication System**
+- User registration and login
+- Profile management
+- Secure JWT-based authentication
+- Password validation and recovery
 
-2. Start the app
+### 🗺️ **Maps & Location**
+- Real-time location services
+- Interactive venue mapping
+- Nearby venue discovery
+- Distance calculations
 
-   ```bash
-   npx expo start
-   ```
+### 🔍 **Search & Discovery**
+- Area-based search (Shibuya, Shinjuku, Roppongi, etc.)
+- Genre-based filtering (Bars, Clubs, Lounges, Karaoke, etc.)
+- Advanced search with multiple criteria
+- Popular venue recommendations
 
-In the output, you'll find options to open the app in a
+### ⭐ **Reviews & Ratings**
+- Comprehensive review system
+- Star ratings with category breakdowns
+- Photo uploads and sharing
+- Helpful/unhelpful voting system
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 🔔 **Smart Notifications**
+- Real-time venue updates
+- Personalized recommendations
+- Event notifications
+- Customizable notification settings
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### ❤️ **Favorites Management**
+- Save favorite venues
+- Organize with custom categories
+- Sync across devices
+- Quick access to saved spots
 
-## Get a fresh project
+## 🚀 Tech Stack
 
-When you're ready, run:
+- **Frontend**: React Native with Expo Router
+- **Styling**: React Native StyleSheet (Food app-inspired design)
+- **State Management**: AsyncStorage for offline-first experience
+- **Navigation**: Tab-based navigation with 5 main screens
+- **Platform**: Web-ready with React Native Web
+- **Color Theme**: Primary pink (#ea5a7b) with modern UI
+- **リアルタイム通知**: Service Workerによるプッシュ通知
+- **包括的な機能**: 検索、地図、お気に入り、レビュー、プロフィール
+
+## 🚀 主な機能
+
+### 🔍 高度な店舗検索
+- カテゴリ別フィルタリング（バー、クラブ、ラウンジ、レストラン等）
+- 価格帯、距離、評価による詳細検索
+- リアルタイム検索結果
+
+### 🗺️ インタラクティブ地図
+- 店舗位置の視覚的表示
+- ルート案内機能
+- 周辺情報の統合
+
+### ⭐ レビューシステム
+- 多面的評価システム
+- ユーザー生成コンテンツ
+- 信頼性スコア
+
+### 👤 パーソナライズド体験
+- ユーザープロフィール管理
+- 訪問履歴とバッジシステム
+- カスタマイズ可能な設定
+
+### ❤️ お気に入り管理
+- 店舗コレクション機能
+- 統計と傾向分析
+- ソーシャル共有
+
+### 🔔 スマート通知
+- 新着店舗情報
+- イベント・プロモーション通知
+- パーソナライズされた推奨
+
+## 🛠️ 技術スタック
+
+- **フレームワーク**: [Fresh](https://fresh.deno.dev/) (Deno)
+- **UI**: Preact + TypeScript
+- **スタイリング**: Twind CSS-in-JS
+- **PWA**: Service Worker + Web App Manifest
+- **API**: RESTful API with Fresh handlers
+- **デザインシステム**: やさしいピンクデザインシステム
+
+## 🚀 開発
+
+### 前提条件
+
+- [Deno](https://deno.land/) 1.37以上
+
+### 開発サーバーの起動
 
 ```bash
-npm run reset-project
+deno task start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📊 主要な実装内容
 
-## Learn more
+### ルーティングシステム
+- ホームページ (`/`)
+- 店舗検索 (`/search`)
+- 地図表示 (`/map`)
+- お気に入り (`/favorites`)
+- 通知 (`/notifications`)
+- プロフィール (`/profile`)
+- 店舗詳細 (`/venues/[id]`)
 
-To learn more about developing your project with Expo, look at the following resources:
+### API エンドポイント
+- `GET /api/venues` - 店舗一覧・検索
+- `GET /api/venues/[id]` - 店舗詳細
+- `GET /api/favorites` - お気に入り管理
+- `GET /api/notifications` - 通知管理
+- `GET /api/user/profile` - ユーザープロフィール
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### PWA機能
+- Service Worker によるオフライン対応
+- Web App Manifest でアプリライクな体験
+- プッシュ通知システム
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+**Nightlife Navigator** - やさしいピンクで案内する、東京の夜を彩る特別な場所
+EOF < /dev/null

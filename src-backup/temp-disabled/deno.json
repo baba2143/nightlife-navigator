@@ -1,0 +1,71 @@
+{
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check **/*.ts && deno check **/*.tsx",
+    "cli": "echo \"import '\\$fresh/src/dev/cli.ts'\" | deno run --unstable -A -",
+    "manifest": "deno task cli manifest $(pwd)",
+    "start": "deno run -A --watch=static/,routes/ dev.ts",
+    "build": "deno run -A dev.ts build",
+    "preview": "deno run -A main.ts",
+    "update": "deno run -A -r https://fresh.deno.dev/update .",
+    "test": "deno test -A --watch=false --parallel tests/",
+    "test:watch": "deno test -A --watch tests/",
+    "test:coverage": "deno test -A --coverage=coverage --watch=false tests/",
+    "test:unit": "deno test -A --filter='unit' tests/",
+    "test:integration": "deno test -A --filter='integration' tests/",
+    "deploy": "deno run -A --unstable https://deno.land/x/deploy/deployctl.ts deploy",
+    "prod": "deno run -A main.ts",
+    "docker:build": "docker build -t nightlife-navigator .",
+    "docker:run": "docker run -p 8000:8000 nightlife-navigator",
+    "docker:compose": "docker-compose up -d",
+    "config:show": "deno run -A scripts/config-manager.ts show",
+    "config:validate": "deno run -A scripts/config-manager.ts validate",
+    "config:setup": "deno run -A scripts/config-manager.ts setup",
+    "backup:create": "deno run -A scripts/backup-manager.ts create",
+    "backup:list": "deno run -A scripts/backup-manager.ts list",
+    "backup:restore": "deno run -A scripts/backup-manager.ts restore",
+    "backup:status": "deno run -A scripts/backup-manager.ts status",
+    "backup:cleanup": "deno run -A scripts/backup-manager.ts cleanup",
+    "backup:auto": "deno run -A scripts/backup-manager.ts auto"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["fresh", "recommended"]
+    }
+  },
+  "exclude": ["**/_fresh/*", "node_modules/", "coverage/"],
+  "imports": {
+    "$fresh/": "https://deno.land/x/fresh@2.0.0-alpha.21/",
+    "preact": "https://esm.sh/preact@10.19.6",
+    "preact/": "https://esm.sh/preact@10.19.6/",
+    "preact-render-to-string": "https://esm.sh/*preact-render-to-string@6.2.2",
+    "@preact/signals": "https://esm.sh/*@preact/signals@1.2.2",
+    "@preact/signals-core": "https://esm.sh/*@preact/signals-core@1.5.1",
+    "twind": "https://esm.sh/twind@0.16.19",
+    "twind/": "https://esm.sh/twind@0.16.19/",
+    "$std/": "https://deno.land/std@0.216.0/",
+    "crypto": "https://deno.land/std@0.216.0/crypto/mod.ts",
+    "jwt": "https://deno.land/x/djwt@v3.0.2/mod.ts",
+    "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
+    "mongo": "https://deno.land/x/mongo@v0.32.0/mod.ts",
+    "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
+    "zod": "https://deno.land/x/zod@v3.22.4/mod.ts",
+    "oak": "https://deno.land/x/oak@v14.2.0/mod.ts",
+    "cliffy": "https://deno.land/x/cliffy@v1.0.0-rc.3/mod.ts",
+    "~": "./",
+    "~/": "./"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es2022"
+    ],
+    "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}

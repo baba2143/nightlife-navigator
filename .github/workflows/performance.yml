@@ -1,0 +1,318 @@
+name: Performance Monitoring
+
+on:
+  schedule:
+    - cron: '0 6 * * *' # Run daily at 6 AM
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lighthouse-audit:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build for web
+      run: npm run build:web || echo "Web build not available"
+      
+    - name: Run Lighthouse
+      uses: treosh/lighthouse-ci-action@v11
+      with:
+        uploadDir: ./lighthouse-reports
+        configPath: ./lighthouse.config.js
+        temporaryPublicStorage: true
+        
+    - name: Upload Lighthouse results
+      uses: actions/upload-artifact@v4
+      with:
+        name: lighthouse-results
+        path: lighthouse-reports/
+        
+  bundle-analysis:
+    name: Bundle Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Analyze bundle size
+      run: |
+        echo "Analyzing bundle size..."
+        npm run build:production
+        
+        # Check main bundle size
+        if [ -f "dist/main.js" ]; then
+          SIZE=$(wc -c < "dist/main.js")
+          echo "Main bundle size: $SIZE bytes"
+          
+          # Alert if bundle is too large (> 1MB)
+          if [ $SIZE -gt 1048576 ]; then
+            echo "⚠️  Bundle size is too large: $SIZE bytes"
+            exit 1
+          fi
+        fi
+        
+    - name: Check for unused dependencies
+      run: |
+        echo "Checking for unused dependencies..."
+        npm ls --all 2>/dev/null | grep -E "(UNMET|missing)" || echo "No missing dependencies"
+        
+    - name: Analyze dependencies
+      run: |
+        echo "Analyzing dependencies..."
+        npm list --depth=0 --json > dependencies.json
+        
+        # Count dependencies
+        DEPS=$(cat dependencies.json | jq '.dependencies | length')
+        echo "Total dependencies: $DEPS"
+        
+        # Check for heavy dependencies
+        echo "Checking for heavy dependencies..."
+        du -sh node_modules/* 2>/dev/null | sort -hr | head -10
+        
+    - name: Upload bundle analysis
+      uses: actions/upload-artifact@v4
+      with:
+        name: bundle-analysis
+        path: |
+          dependencies.json
+          dist/
+          
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run performance tests
+      run: |
+        echo "Running performance tests..."
+        
+        # Test app startup time
+        START_TIME=$(date +%s%N)
+        npm run start:test &
+        SERVER_PID=$!
+        
+        # Wait for server to start
+        sleep 10
+        
+        # Test response time
+        RESPONSE_TIME=$(curl -o /dev/null -s -w "%{time_total}" http://localhost:3000 || echo "0")
+        echo "Response time: ${RESPONSE_TIME}s"
+        
+        # Stop test server
+        kill $SERVER_PID || echo "Server already stopped"
+        
+        # Check if response time is acceptable (< 2 seconds)
+        if (( $(echo "$RESPONSE_TIME > 2" | bc -l) )); then
+          echo "⚠️  Response time is too slow: ${RESPONSE_TIME}s"
+          exit 1
+        fi
+        
+    - name: Memory usage test
+      run: |
+        echo "Testing memory usage..."
+        
+        # Start app and monitor memory
+        npm run start:test &
+        SERVER_PID=$!
+        
+        sleep 5
+        
+        # Check memory usage
+        if ps -p $SERVER_PID > /dev/null; then
+          MEMORY=$(ps -p $SERVER_PID -o rss= | tr -d ' ')
+          echo "Memory usage: ${MEMORY}KB"
+          
+          # Alert if memory usage is too high (> 512MB)
+          if [ $MEMORY -gt 524288 ]; then
+            echo "⚠️  Memory usage is too high: ${MEMORY}KB"
+          fi
+        fi
+        
+        kill $SERVER_PID || echo "Server already stopped"
+        
+  load-test:
+    name: Load Test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Install Artillery
+      run: npm install -g artillery
+      
+    - name: Run load test
+      run: |
+        echo "Running load test..."
+        
+        # Create artillery config
+        cat > artillery.yml << EOF
+        config:
+          target: 'http://localhost:3000'
+          phases:
+            - duration: 60
+              arrivalRate: 5
+        scenarios:
+          - name: "Basic load test"
+            requests:
+              - get:
+                  url: "/"
+        EOF
+        
+        # Start test server
+        npm run start:test &
+        SERVER_PID=$!
+        
+        sleep 10
+        
+        # Run artillery test
+        artillery run artillery.yml --output load-test-results.json
+        
+        # Generate report
+        artillery report load-test-results.json --output load-test-report.html
+        
+        # Stop test server
+        kill $SERVER_PID || echo "Server already stopped"
+        
+    - name: Upload load test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: load-test-results
+        path: |
+          load-test-results.json
+          load-test-report.html
+          
+  mobile-performance:
+    name: Mobile Performance Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Test mobile performance
+      run: |
+        echo "Testing mobile performance..."
+        
+        # Check for mobile-specific optimizations
+        grep -r "Platform.OS\|Platform.select" src/ || echo "No platform-specific code found"
+        
+        # Check for image optimization
+        find assets/ -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" | while read img; do
+          SIZE=$(wc -c < "$img")
+          if [ $SIZE -gt 1048576 ]; then
+            echo "⚠️  Large image detected: $img ($SIZE bytes)"
+          fi
+        done
+        
+        # Check for excessive re-renders
+        grep -r "useEffect\|useState" src/ | wc -l | while read count; do
+          echo "React hooks usage: $count"
+        done
+        
+  performance-report:
+    name: Performance Report
+    runs-on: ubuntu-latest
+    needs: [lighthouse-audit, bundle-analysis, performance-test, load-test, mobile-performance]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: ./performance-reports/
+        
+    - name: Generate performance report
+      run: |
+        mkdir -p performance-reports
+        
+        echo "# Performance Report" > performance-reports/README.md
+        echo "Generated on: $(date)" >> performance-reports/README.md
+        echo "" >> performance-reports/README.md
+        echo "## Summary" >> performance-reports/README.md
+        echo "- Lighthouse Audit: ${{ needs.lighthouse-audit.result }}" >> performance-reports/README.md
+        echo "- Bundle Analysis: ${{ needs.bundle-analysis.result }}" >> performance-reports/README.md
+        echo "- Performance Test: ${{ needs.performance-test.result }}" >> performance-reports/README.md
+        echo "- Load Test: ${{ needs.load-test.result }}" >> performance-reports/README.md
+        echo "- Mobile Performance: ${{ needs.mobile-performance.result }}" >> performance-reports/README.md
+        
+        # Add detailed metrics if available
+        if [ -f "performance-reports/lighthouse-results/lighthouse-results.json" ]; then
+          echo "" >> performance-reports/README.md
+          echo "## Lighthouse Metrics" >> performance-reports/README.md
+          echo "- Performance Score: $(jq '.lhr.categories.performance.score' performance-reports/lighthouse-results/lighthouse-results.json)" >> performance-reports/README.md
+        fi
+        
+    - name: Upload performance report
+      uses: actions/upload-artifact@v4
+      with:
+        name: performance-report
+        path: performance-reports/
+        
+    - name: Notify performance team
+      if: failure()
+      env:
+        SLACK_WEBHOOK: ${{ secrets.PERFORMANCE_SLACK_WEBHOOK }}
+      run: |
+        curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"⚡ Performance tests failed! Please review the performance report."}' \
+          $SLACK_WEBHOOK

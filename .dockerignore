@@ -1,0 +1,71 @@
+# Git
+.git
+.gitignore
+
+# Node modules (if any)
+node_modules
+npm-debug.log*
+
+# Deno cache
+.deno
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# Build output
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+
+# Database files (for development)
+*.db
+*.sqlite
+*.sqlite3
+
+# Documentation
+README.md
+docs/
+
+# CI files
+.github/
+.travis.yml
+.circleci/
+
+# Docker files (to avoid recursion)
+Dockerfile*
+docker-compose*
+
+# Test files
+tests/
+test/
+__tests__/
+*.test.ts
+*.spec.ts

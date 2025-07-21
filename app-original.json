@@ -1,0 +1,103 @@
+{
+  "expo": {
+    "name": "NightLife Navigator",
+    "slug": "nightlife-navigator",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "nightlifenavigator",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0a"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nightlife.navigator",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "このアプリは写真撮影のためにカメラへのアクセスが必要です",
+        "NSLocationWhenInUseUsageDescription": "このアプリは近くの店舗を表示するために位置情報へのアクセスが必要です",
+        "NSPhotoLibraryUsageDescription": "このアプリはプロフィール画像の設定のために写真ライブラリへのアクセスが必要です",
+        "NSMicrophoneUsageDescription": "このアプリは音声録音のためにマイクへのアクセスが必要です"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#0a0a0a"
+      },
+      "package": "com.nightlife.navigator",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECORD_AUDIO",
+        "VIBRATE",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "WAKE_LOCK"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0a0a0a"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#D4AF37",
+          "sounds": ["./assets/sounds/notification.wav"]
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "このアプリは近くの店舗を表示するために位置情報へのアクセスが必要です"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "このアプリは写真撮影のためにカメラへのアクセスが必要です"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      },
+      "environment": "development",
+      "buildNumber": 1,
+      "EXPO_PUBLIC_ENV": "development",
+      "EXPO_PUBLIC_API_URL": "http://localhost:8000",
+      "EXPO_PUBLIC_API_VERSION": "v1",
+      "EXPO_PUBLIC_FEATURE_BIOMETRIC_AUTH": true,
+      "EXPO_PUBLIC_FEATURE_SOCIAL_LOGIN": true,
+      "EXPO_PUBLIC_FEATURE_PUSH_NOTIFICATIONS": false,
+      "EXPO_PUBLIC_FEATURE_ANALYTICS": false,
+      "EXPO_PUBLIC_ENABLE_DEV_MENU": true,
+      "EXPO_PUBLIC_USE_MOCK_DATA": true
+    },
+    "owner": "nightlife-navigator"
+  }
+}

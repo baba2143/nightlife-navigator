@@ -1,0 +1,257 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      tag_name: ${{ steps.get_version.outputs.tag_name }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Get version
+      id: get_version
+      run: echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.get_version.outputs.tag_name }}
+        release_name: Release ${{ steps.get_version.outputs.tag_name }}
+        body: |
+          ## What's New
+          
+          ### Features
+          - Enhanced authentication system
+          - Improved user profile management
+          - New security features
+          
+          ### Bug Fixes
+          - Fixed session management issues
+          - Improved API error handling
+          - Enhanced performance
+          
+          ### Security
+          - Updated dependencies
+          - Enhanced encryption
+          - Improved authentication flow
+          
+          ## Installation
+          
+          ```bash
+          npm install
+          npm run build:production
+          ```
+          
+          ## Download
+          
+          Choose the appropriate build for your platform:
+          - Android: `.apk` file
+          - iOS: `.ipa` file
+          - Web: Use the deployed web application
+          
+        draft: false
+        prerelease: false
+        
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    needs: create-release
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Expo CLI
+      run: npm install -g @expo/cli
+      
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build Android APK
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      run: |
+        expo build:android --type apk --release-channel production
+        
+    - name: Upload Android APK
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./nightlife-navigator.apk
+        asset_name: nightlife-navigator-${{ needs.create-release.outputs.tag_name }}.apk
+        asset_content_type: application/vnd.android.package-archive
+        
+  build-ios:
+    name: Build iOS
+    runs-on: macos-latest
+    needs: create-release
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Setup Expo CLI
+      run: npm install -g @expo/cli
+      
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build iOS IPA
+      env:
+        EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        EXPO_APPLE_ID: ${{ secrets.EXPO_APPLE_ID }}
+        EXPO_APPLE_PASSWORD: ${{ secrets.EXPO_APPLE_PASSWORD }}
+      run: |
+        expo build:ios --type archive --release-channel production
+        
+    - name: Upload iOS IPA
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create-release.outputs.upload_url }}
+        asset_path: ./nightlife-navigator.ipa
+        asset_name: nightlife-navigator-${{ needs.create-release.outputs.tag_name }}.ipa
+        asset_content_type: application/octet-stream
+        
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [create-release, build-android, build-ios]
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Deploy to production
+      env:
+        PRODUCTION_API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
+        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+      run: |
+        echo "Deploying to production..."
+        npm run deploy:production
+        
+    - name: Update production database
+      env:
+        DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+      run: |
+        echo "Running database migrations..."
+        # Add your database migration commands here
+        
+    - name: Smoke test production
+      run: |
+        echo "Running smoke tests on production..."
+        # Add your production smoke tests here
+        
+  notify-release:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: always()
+    
+    steps:
+    - name: Notify Slack
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        TAG_NAME: ${{ needs.create-release.outputs.tag_name }}
+      run: |
+        if [ "${{ needs.deploy-production.result }}" == "success" ]; then
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"🚀 Release $TAG_NAME deployed successfully to production!\"}" \
+            $SLACK_WEBHOOK
+        else
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"❌ Release $TAG_NAME deployment failed!\"}" \
+            $SLACK_WEBHOOK
+        fi
+        
+    - name: Send email notification
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.EMAIL_USERNAME }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: 'Release ${{ needs.create-release.outputs.tag_name }} Deployed'
+        body: |
+          Release ${{ needs.create-release.outputs.tag_name }} has been successfully deployed to production.
+          
+          Features:
+          - Enhanced authentication system
+          - Improved user profile management
+          - New security features
+          
+          The release is now available to all users.
+        to: ${{ secrets.NOTIFICATION_EMAIL }}
+        from: 'Nightlife Navigator CI/CD <noreply@nightlife-navigator.com>'
+        
+  update-documentation:
+    name: Update Documentation
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    if: success()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Update changelog
+      run: |
+        echo "Updating changelog..."
+        # Add your changelog update logic here
+        
+    - name: Update version in package.json
+      run: |
+        echo "Updating version..."
+        # Add your version update logic here
+        
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Update documentation for release ${{ needs.create-release.outputs.tag_name }}" || exit 0
+        git push

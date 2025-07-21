@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nightlife Navigator MVP - Updated Design</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        .phone-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, #ea5a7b 0%, #f8c8d1 100%);
+        }
+        .phone {
+            width: 375px;
+            height: 812px;
+            background: #000;
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f5f5f5;
+            border-radius: 32px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            background: #ea5a7b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            color: white;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .discount-badge {
+            background: #c40010;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        /* Content */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+        
+        /* Search Section */
+        .search-section {
+            background: white;
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+        .search-input {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            width: 100%;
+        }
+        .search-input-with-icon {
+            position: relative;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        .search-input-with-icon input {
+            padding-left: 40px;
+        }
+        
+        /* Stats */
+        .stats-section {
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 16px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        /* Sections */
+        .section {
+            background: white;
+            padding: 16px;
+            margin-top: 8px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+        .section-link {
+            font-size: 14px;
+            color: #007AFF;
+            text-decoration: none;
+        }
+        
+        /* Current Location */
+        .current-location {
+            position: relative;
+            height: 96px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .current-location-overlay {
+            text-align: center;
+        }
+        .current-location-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .current-location-subtitle {
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        
+        /* Area Grid */
+        .area-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        .area-item {
+            position: relative;
+            height: 80px;
+            background: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: flex-end;
+            padding: 8px;
+            color: white;
+        }
+        .area-info {
+            text-align: left;
+        }
+        .area-name {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .area-count {
+            font-size: 12px;
+        }
+        
+        /* Genre Grid */
+        .genre-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .genre-item {
+            position: relative;
+            height: 96px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .genre-info {
+            text-align: center;
+        }
+        .genre-emoji {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        .genre-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .genre-count {
+            font-size: 12px;
+            margin-top: 2px;
+        }
+        
+        /* Detail Search */
+        .detail-search {
+            background: white;
+            padding: 16px;
+            margin-top: 8px;
+        }
+        .detail-search-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .detail-search-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-left: 8px;
+            flex: 1;
+        }
+        .search-btn {
+            background: #eee;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            border: none;
+        }
+        .search-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+        }
+        .search-option-text {
+            font-size: 14px;
+            color: #666;
+            margin-left: 8px;
+            flex: 1;
+        }
+        .select-btn {
+            background: #eee;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #666;
+            border: none;
+        }
+        .detail-search-btn {
+            background: #ea5a7b;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            width: 100%;
+            margin: 16px 0 8px 0;
+        }
+        .reset-btn {
+            background: #eee;
+            color: #666;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            width: 100%;
+        }
+        
+        /* Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #eee;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            padding: 8px 0 20px 0;
+        }
+        .tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            color: #666;
+            text-decoration: none;
+        }
+        .tab.active {
+            color: #ea5a7b;
+        }
+        .tab-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .tab-label {
+            font-size: 10px;
+        }
+        
+        .demo-note {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-note">📱 Updated Design - Nightlife Navigator</div>
+    
+    <div class="phone-container">
+        <div class="phone">
+            <div class="screen">
+                <!-- Header -->
+                <div class="header">
+                    <div class="header-left">
+                        <span>🍷</span>
+                        <span class="header-title">Nightlife Navigator</span>
+                        <div class="discount-badge">20%</div>
+                    </div>
+                    <div class="header-right">
+                        <span>🔔</span>
+                        <span>🔖</span>
+                        <span>👤</span>
+                    </div>
+                </div>
+                
+                <div class="content">
+                    <!-- Search Section -->
+                    <div class="search-section">
+                        <div class="search-input-with-icon">
+                            <span class="search-icon">🔍</span>
+                            <input class="search-input" placeholder="エリア・駅" />
+                        </div>
+                        <input class="search-input" placeholder="店名・ジャンル・雰囲気" />
+                    </div>
+                    
+                    <!-- Stats -->
+                    <div class="stats-section">
+                        <div class="stat-item">
+                            <div class="stat-number">1,234</div>
+                            <div class="stat-label">店舗</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">5,678</div>
+                            <div class="stat-label">口コミ</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">9,012</div>
+                            <div class="stat-label">写真</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Area Search -->
+                    <div class="section">
+                        <div class="section-header">
+                            <h2 class="section-title">エリアから探す</h2>
+                            <a href="#" class="section-link">エリア一覧</a>
+                        </div>
+                        
+                        <div class="current-location">
+                            <div class="current-location-overlay">
+                                <div class="current-location-title">現在地周辺</div>
+                                <div class="current-location-subtitle">全てのジャンル</div>
+                            </div>
+                        </div>
+                        
+                        <div class="area-grid">
+                            <div class="area-item">
+                                <div class="area-info">
+                                    <div class="area-name">渋谷</div>
+                                    <div class="area-count">1,369件</div>
+                                </div>
+                            </div>
+                            <div class="area-item">
+                                <div class="area-info">
+                                    <div class="area-name">新宿</div>
+                                    <div class="area-count">2,514件</div>
+                                </div>
+                            </div>
+                            <div class="area-item">
+                                <div class="area-info">
+                                    <div class="area-name">六本木</div>
+                                    <div class="area-count">893件</div>
+                                </div>
+                            </div>
+                            <div class="area-item">
+                                <div class="area-info">
+                                    <div class="area-name">銀座</div>
+                                    <div class="area-count">1,902件</div>
+                                </div>
+                            </div>
+                            <div class="area-item">
+                                <div class="area-info">
+                                    <div class="area-name">恵比寿</div>
+                                    <div class="area-count">756件</div>
+                                </div>
+                            </div>
+                            <div class="area-item">
+                                <div class="area-info">
+                                    <div class="area-name">表参道</div>
+                                    <div class="area-count">634件</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Genre Search -->
+                    <div class="section">
+                        <div class="section-header">
+                            <h2 class="section-title">ジャンルから探す</h2>
+                            <a href="#" class="section-link">ジャンル一覧</a>
+                        </div>
+                        
+                        <div class="genre-grid">
+                            <div class="genre-item">
+                                <div class="genre-info">
+                                    <div class="genre-emoji">🍸</div>
+                                    <div class="genre-name">バー</div>
+                                    <div class="genre-count">3,462件</div>
+                                </div>
+                            </div>
+                            <div class="genre-item">
+                                <div class="genre-info">
+                                    <div class="genre-emoji">🎵</div>
+                                    <div class="genre-name">クラブ</div>
+                                    <div class="genre-count">1,032件</div>
+                                </div>
+                            </div>
+                            <div class="genre-item">
+                                <div class="genre-info">
+                                    <div class="genre-emoji">🥂</div>
+                                    <div class="genre-name">ラウンジ</div>
+                                    <div class="genre-count">2,164件</div>
+                                </div>
+                            </div>
+                            <div class="genre-item">
+                                <div class="genre-info">
+                                    <div class="genre-emoji">🎤</div>
+                                    <div class="genre-name">カラオケ</div>
+                                    <div class="genre-count">1,119件</div>
+                                </div>
+                            </div>
+                            <div class="genre-item">
+                                <div class="genre-info">
+                                    <div class="genre-emoji">🍺</div>
+                                    <div class="genre-name">パブ</div>
+                                    <div class="genre-count">889件</div>
+                                </div>
+                            </div>
+                            <div class="genre-item">
+                                <div class="genre-info">
+                                    <div class="genre-emoji">🍷</div>
+                                    <div class="genre-name">ワインバー</div>
+                                    <div class="genre-count">934件</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Detail Search -->
+                    <div class="detail-search">
+                        <div class="detail-search-header">
+                            <span>🔍</span>
+                            <span class="detail-search-title">お店を詳しく検索</span>
+                            <button class="search-btn">SEARCH</button>
+                        </div>
+                        
+                        <div class="search-option">
+                            <span>📍</span>
+                            <span class="search-option-text">エリア</span>
+                            <button class="select-btn">選択する</button>
+                        </div>
+                        <div class="search-option">
+                            <span>🍷</span>
+                            <span class="search-option-text">ジャンル</span>
+                            <button class="select-btn">選択する</button>
+                        </div>
+                        
+                        <button class="detail-search-btn">詳細検索の条件を適用</button>
+                        <button class="reset-btn">リセット</button>
+                    </div>
+                </div>
+                
+                <!-- Tab Bar -->
+                <div class="tab-bar">
+                    <a href="#" class="tab active">
+                        <div class="tab-icon">🏠</div>
+                        <div class="tab-label">ホーム</div>
+                    </a>
+                    <a href="#" class="tab">
+                        <div class="tab-icon">🔍</div>
+                        <div class="tab-label">検索</div>
+                    </a>
+                    <a href="#" class="tab">
+                        <div class="tab-icon">🗺️</div>
+                        <div class="tab-label">地図</div>
+                    </a>
+                    <a href="#" class="tab">
+                        <div class="tab-icon">❤️</div>
+                        <div class="tab-label">お気に入り</div>
+                    </a>
+                    <a href="#" class="tab">
+                        <div class="tab-icon">👤</div>
+                        <div class="tab-label">プロフィール</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -30,10 +30,51 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# Environment variables - NEVER COMMIT THESE
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.production.real
+*.env
 
 # typescript
 *.tsbuildinfo
 
 app-example
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+
+# Temporary files
+tmp/
+temp/
+
+# Logs
+logs/
+*.log
+
+# Coverage reports
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Test coverage
+lcov.info
+
+# Sentry Config File
+.sentryclirc
+
+# Local Netlify folder
+.netlify
