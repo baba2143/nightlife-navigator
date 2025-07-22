@@ -25,6 +25,9 @@
       }
     },
     "production": {
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_ENV": "production"
       }
