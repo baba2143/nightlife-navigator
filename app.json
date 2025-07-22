@@ -46,7 +46,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "e52b5193-dd03-4df9-90e8-f415a016da6a"
       },
       "environment": "development"
     }
