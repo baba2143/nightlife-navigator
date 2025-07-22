@@ -26,8 +26,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ea5a7b"
       },
-      "package": "com.nightlife.navigator.mvp",
-      "versionCode": 1
+      "package": "com.nightlife.navigator.mvp"
     },
     "web": {
       "favicon": "./assets/images/favicon.png",
