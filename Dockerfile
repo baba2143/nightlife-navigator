@@ -1,4 +1,4 @@
-FROM denoland/deno:1.44.4
+FROM denoland/deno:2.6.0
 
 # 作業ディレクトリの設定
 WORKDIR /app
